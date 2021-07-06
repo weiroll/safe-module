@@ -21,7 +21,7 @@ contract WeirollModule {
 
         require(
             safe.execTransactionFromModule(address(executor), 0, data, Enum.Operation.DelegateCall),
-            "Could not executescript"
+            "Could not execute script"
         );
     }
 
