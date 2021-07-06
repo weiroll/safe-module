@@ -25,27 +25,25 @@ contract WeirollModule {
     }
 
     function addScriptExecutor(address executor, bytes32 scriptHash) public {
-        scriptExecutor[msg.sender][scriptHash] = true;
+        scriptExecutor[msg.sender][executor][scriptHash] = true;
     }
 
     function removeScriptExecutor(address executor, bytes32 scriptHash) public {
-        scriptExecutor[msg.sender][scriptHash] = false;
+        scriptExecutor[msg.sender][executor][scriptHash] = false;
     }
 
-    function addExecutor(address executor, bytes32 scriptHash) public {
-        executors[msg.sender] = true;
+    function addExecutor(address executor) public {
+        executors[msg.sender][executor] = true;
     }
 
-    function removeExecutor(address executor, bytes32 scriptHash) public {
-        executors[msg.sender] = false;
+    function removeExecutor(address executor) public {
+        executors[msg.sender][executor] = false;
     }
 
-    // @TODO access control
-    // @TODO Do signature checks?
     function executeWeiroll(GnosisSafe safe, bytes32[] calldata commands, bytes[] memory state) public {
-//        require(executors[address(safe)][msg.sender], "not authorized to execute");
-
-        // @TODO CHECK IF sender can execute the command either through scriptExecutor or executor
+        require(executors[address(safe)][msg.sender]
+            || scriptExecutor[address(safe)][msg.sender][keccak256(commands)], "not authorized to execute"
+        );
 
         bytes memory data = abi.encodeWithSignature("execute(bytes32[],bytes[])", commands, state);
 
