@@ -19,6 +19,14 @@ contract WeirollModule {
         vm = _vm;
     }
 
+    function addExecutor(address executor, bytes32 scriptHash) public {
+        executors[msg.sender][scriptHash] = true;
+    }
+
+    function removeExecutor(address executor, bytes32 scriptHash) public {
+        executors[msg.sender][scriptHash] = false;
+    }
+
     // @TODO access control
     // @TODO Do signature checks?
     function executeWeiroll(GnosisSafe safe, bytes32[] calldata commands, bytes[] memory state) public {
