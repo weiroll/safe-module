@@ -12,19 +12,32 @@ contract WeirollModule {
     /// Weiroll VM
     address public vm;
 
+    // This mapping represents executors that can execute any script.
+    // Safe -> Executor -> Authorized
+    mapping(address => mapping(address => bool)) executor;
+
+    // This mapping represents executors that can execute a specific script.
     // Safe -> Executor -> Script Hash -> Authorized
-    mapping(address => mapping(address => mapping (bytes32 => bool))) executors;
+    mapping(address => mapping(address => mapping (bytes32 => bool))) scriptExecutor;
 
     constructor(address _vm) {
         vm = _vm;
     }
 
+    function addScriptExecutor(address executor, bytes32 scriptHash) public {
+        scriptExecutor[msg.sender][scriptHash] = true;
+    }
+
+    function removeScriptExecutor(address executor, bytes32 scriptHash) public {
+        scriptExecutor[msg.sender][scriptHash] = false;
+    }
+
     function addExecutor(address executor, bytes32 scriptHash) public {
-        executors[msg.sender][scriptHash] = true;
+        executors[msg.sender] = true;
     }
 
     function removeExecutor(address executor, bytes32 scriptHash) public {
-        executors[msg.sender][scriptHash] = false;
+        executors[msg.sender] = false;
     }
 
     // @TODO access control
@@ -32,7 +45,7 @@ contract WeirollModule {
     function executeWeiroll(GnosisSafe safe, bytes32[] calldata commands, bytes[] memory state) public {
 //        require(executors[address(safe)][msg.sender], "not authorized to execute");
 
-        // @TODO CHECK IF sender can execute the command
+        // @TODO CHECK IF sender can execute the command either through scriptExecutor or executor
 
         bytes memory data = abi.encodeWithSignature("execute(bytes32[],bytes[])", commands, state);
 
