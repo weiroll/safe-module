@@ -4,7 +4,6 @@ import "@gnosis.pm/safe-contracts/contracts/GnosisSafe.sol";
 import "@weiroll/weiroll/contracts/Executor.sol";
 
 contract WeirollModule {
-
     string public constant NAME = "Weiroll Module";
     string public constant VERSION = "0.1.0";
 
@@ -18,7 +17,7 @@ contract WeirollModule {
 
     // This mapping represents executors that can execute a specific script.
     // Safe -> Executor -> Script Hash -> Authorized
-    mapping(address => mapping(address => mapping (bytes32 => bool))) scriptExecutor;
+    mapping(address => mapping(address => mapping(bytes32 => bool))) scriptExecutor;
 
     constructor(address _vm) {
         vm = _vm;
@@ -40,17 +39,31 @@ contract WeirollModule {
         executors[msg.sender][executor] = false;
     }
 
-    function executeWeiroll(GnosisSafe safe, bytes32[] calldata commands, bytes[] memory state) public {
-        require(executors[address(safe)][msg.sender]
-            || scriptExecutor[address(safe)][msg.sender][keccak256(commands)], "not authorized to execute"
+    function executeWeiroll(
+        GnosisSafe safe,
+        bytes32[] calldata commands,
+        bytes[] memory state
+    ) public {
+        require(
+            executors[address(safe)][msg.sender] ||
+                scriptExecutor[address(safe)][msg.sender][keccak256(commands)],
+            "not authorized to execute"
         );
 
-        bytes memory data = abi.encodeWithSignature("execute(bytes32[],bytes[])", commands, state);
+        bytes memory data = abi.encodeWithSignature(
+            "execute(bytes32[],bytes[])",
+            commands,
+            state
+        );
 
         require(
-            safe.execTransactionFromModule(vm, 0, data, Enum.Operation.DelegateCall),
+            safe.execTransactionFromModule(
+                vm,
+                0,
+                data,
+                Enum.Operation.DelegateCall
+            ),
             "could not execute script"
         );
     }
-
 }
